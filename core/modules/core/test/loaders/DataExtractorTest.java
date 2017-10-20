@@ -49,7 +49,7 @@ public class DataExtractorTest {
         Report report = createReport();
         BandData rootBand = rootBand();
 
-        dataExtractor.extractData(report, new HashMap<String, Object>(), rootBand);
+        dataExtractor.extractData(report, new HashMap<>(), rootBand);
         System.out.println(rootBand);
         Assert.assertEquals(1, rootBand.getChildrenList().size());
 
@@ -62,7 +62,7 @@ public class DataExtractorTest {
 
         dataExtractor.setPutEmptyRowIfNoDataSelected(false);
         rootBand = rootBand();
-        dataExtractor.extractData(report, new HashMap<String, Object>(), rootBand);
+        dataExtractor.extractData(report, new HashMap<>(), rootBand);
         System.out.println(rootBand);
 
         Assert.assertEquals(0, rootBand.getChildrenList().size());

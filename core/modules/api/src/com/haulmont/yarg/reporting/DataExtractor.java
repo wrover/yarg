@@ -27,4 +27,6 @@ import java.util.Map;
  */
 public interface DataExtractor {
     void extractData(Report report, Map<String, Object> params, BandData rootBand);
+
+    default boolean getPutEmptyRowIfNoDataSelected() { return true; }
 }
