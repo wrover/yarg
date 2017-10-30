@@ -29,7 +29,7 @@ public class QueryData {
 
         QueryData queryData = (QueryData) o;
 
-        return query != null && query.getName().equals(queryData.query.getName());
+        return query != null ? query.getName().equals(queryData.query.getName()) : queryData.query == null;
     }
 
     @Override

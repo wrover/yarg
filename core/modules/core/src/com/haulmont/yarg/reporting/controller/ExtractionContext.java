@@ -12,17 +12,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ExtractionContext {
     protected DataExtractor extractor;
     protected ReportBand band;
-    protected BandData bandData;
+    protected BandData parentBand;
     protected Map<String, Object> params;
 
-    public ExtractionContext(DataExtractor extractor, ReportBand band, BandData bandData, Map<String, Object> params) {
+    public ExtractionContext(DataExtractor extractor, ReportBand band, BandData parentBand, Map<String, Object> params) {
         checkNotNull(extractor);
         checkNotNull(band);
         checkNotNull(params);
 
         this.extractor = extractor;
         this.band = band;
-        this.bandData = bandData;
+        this.parentBand = parentBand;
         this.params = params;
     }
 
@@ -34,15 +34,28 @@ public class ExtractionContext {
         return band;
     }
 
-    public BandData getBandData() {
-        return bandData;
+    public BandData getParentBandData() {
+        return parentBand;
     }
 
     public Map<String, Object> getParams() {
         return Collections.unmodifiableMap(params);
     }
 
+    public ExtractionContext extendParams(Map<String, Object> params) {
+        this.params.putAll(params);
+        return this;
+    }
+
     public ExtractionContext withParams(Map<String, Object> params) {
-        return new ExtractionContext(extractor, band, bandData, params);
+        return new ExtractionContext(extractor, band, parentBand, params);
+    }
+
+    public ExtractionContext withBand(ReportBand band) {
+        return new ExtractionContext(extractor, band, parentBand, params);
+    }
+
+    public ExtractionContext withParentData(BandData parentBand) {
+        return new ExtractionContext(extractor, band, parentBand, params);
     }
 }

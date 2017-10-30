@@ -37,4 +37,8 @@ public enum BandOrientation {
 
         return UNDEFINED;
     }
+
+    public static BandOrientation NN(BandOrientation orientation) {
+        return orientation == null ? UNDEFINED : orientation;
+    }
 }

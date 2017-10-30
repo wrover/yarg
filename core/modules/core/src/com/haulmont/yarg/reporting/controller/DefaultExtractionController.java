@@ -5,18 +5,28 @@ import com.haulmont.yarg.exception.DataLoadingException;
 import com.haulmont.yarg.exception.ValidationException;
 import com.haulmont.yarg.loaders.ReportDataLoader;
 import com.haulmont.yarg.loaders.factory.ReportLoaderFactory;
+import com.haulmont.yarg.reporting.OrientationExtractionRegistry;
 import com.haulmont.yarg.structure.BandData;
+import com.haulmont.yarg.structure.ReportBand;
 import com.haulmont.yarg.structure.ReportQuery;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class DefaultExtractionController implements ExtractionController {
     @Override
-    public List<Map<String, Object>> extract(ReportLoaderFactory loaderFactory, ExtractionContext context) {
+    public List<BandData> extract(ReportLoaderFactory loaderFactory, ExtractionContext context) {
+        List<Map<String, Object>> outputData = extractData(loaderFactory, context);
+        return traverseData(loaderFactory, context, outputData);
+    }
+
+    @Override
+    public List<Map<String, Object>> extractData(ReportLoaderFactory loaderFactory, ExtractionContext context) {
         checkNotNull(context);
 
         if (CollectionUtils.isEmpty(context.getBand().getReportQueries())) {
@@ -24,7 +34,7 @@ public class DefaultExtractionController implements ExtractionController {
         }
 
         List<Map<String, Object>> result = null;
-        if (!isEmptyBand(context.getBandData())) {
+        if (!isEmptyBand(context.getParentBandData())) {
             result = getQueriesResult(loaderFactory, context);
 
             if (result != null) {
@@ -55,8 +65,30 @@ public class DefaultExtractionController implements ExtractionController {
         return result;
     }
 
-    protected List<ReportQuery> getQueries(ExtractionContext context) {
-        return context.getBand().getReportQueries();
+    protected List<BandData> traverseData(ReportLoaderFactory loaderFactory, ExtractionContext context, List<Map<String, Object>> outputData) {
+        return outputData.stream()
+                .map(data-> wrapData(loaderFactory, context, data))
+                .collect(Collectors.toList());
+    }
+
+    protected BandData wrapData(ReportLoaderFactory loaderFactory, ExtractionContext context, Map<String, Object> data) {
+        BandData band = new BandData(context.getBand().getName(),
+                context.getParentBandData(), context.getBand().getBandOrientation());
+        band.setData(data);
+        Collection<ReportBand> childrenBandDefinitions = context.getBand().getChildren();
+        if (childrenBandDefinitions != null) {
+            for (ReportBand childDefinition : childrenBandDefinitions) {
+                List<BandData> childBands = OrientationExtractionRegistry
+                        .controller(childDefinition.getBandOrientation())
+                        .extract(loaderFactory, context.withBand(childDefinition));
+                band.addChildren(childBands);
+            }
+        }
+        return band;
+    }
+
+    protected Stream<ReportQuery> getQueries(ExtractionContext context) {
+        return context.getBand().getReportQueries().stream();
     }
 
     protected List<Map<String, Object>> getQueriesResult(ReportLoaderFactory loaderFactory, ExtractionContext context) {
@@ -110,7 +142,7 @@ public class DefaultExtractionController implements ExtractionController {
     protected List<Map<String, Object>>  getQueryData(ReportLoaderFactory loaderFactory, ExtractionContext context, ReportQuery reportQuery) {
         try {
             ReportDataLoader dataLoader = loaderFactory.createDataLoader(reportQuery.getLoaderType());
-            return dataLoader.loadData(reportQuery, context.getBandData(), context.getParams());
+            return dataLoader.loadData(reportQuery, context.getParentBandData(), context.getParams());
         } catch (ValidationException e) {
             throw e;
         } catch (Exception e) {

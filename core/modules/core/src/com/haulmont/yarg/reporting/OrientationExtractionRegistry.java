@@ -21,6 +21,10 @@ public final class OrientationExtractionRegistry {
     }
 
     public static ExtractionController controller(BandOrientation orientation) {
-        return extractionControllerMap.getOrDefault(orientation, DEFAULT);
+        return extractionControllerMap.getOrDefault(BandOrientation.NN(orientation), DEFAULT);
+    }
+
+    public static ExtractionController defaultController() {
+        return DEFAULT;
     }
 }

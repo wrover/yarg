@@ -17,6 +17,7 @@
 package com.haulmont.yarg.loaders.impl;
 
 import com.haulmont.yarg.exception.DataLoadingException;
+import com.haulmont.yarg.loaders.impl.sql.CrossTabLinksPreprocessor;
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.ReportQuery;
 import com.haulmont.yarg.util.db.QueryRunner;
@@ -44,6 +45,8 @@ import java.util.regex.Pattern;
  * ${startDate} is alias of the input parameter, which will be passed to the query
  */
 public class SqlDataLoader extends AbstractDbDataLoader {
+
+
     private DataSource dataSource;
 
     public SqlDataLoader(DataSource dataSource) {
@@ -52,21 +55,22 @@ public class SqlDataLoader extends AbstractDbDataLoader {
 
     @Override
     public List<Map<String, Object>> loadData(ReportQuery reportQuery, BandData parentBand, Map<String, Object> params) {
-        List resList;
-        final List<OutputValue> outputValues = new ArrayList<OutputValue>();
-
         String query = reportQuery.getScript();
         if (StringUtils.isBlank(query)) {
             return Collections.emptyList();
         }
-
         try {
+            CrossTabLinksPreprocessor crossTabLinksPreprocessor = new CrossTabLinksPreprocessor(query);
+            query = crossTabLinksPreprocessor.processedQuery();
+            params = crossTabLinksPreprocessor.decorateParams(params);
+
+            final List<OutputValue> outputValues = new ArrayList<>();
             if (Boolean.TRUE.equals(reportQuery.getProcessTemplate())) {
                 query = processQueryTemplate(query, parentBand, params);
             }
             final QueryPack pack = prepareQuery(query, parentBand, params);
 
-            ArrayList<Object> resultingParams = new ArrayList<Object>();
+            ArrayList<Object> resultingParams = new ArrayList<>();
             QueryParameter[] queryParameters = pack.getParams();
             for (QueryParameter queryParameter : queryParameters) {
                 if (queryParameter.isSingleValue()) {
@@ -76,7 +80,7 @@ public class SqlDataLoader extends AbstractDbDataLoader {
                 }
             }
 
-            resList = runQuery(reportQuery, pack.getQuery(), resultingParams.toArray(), new ResultSetHandler<List>() {
+            List resList = runQuery(reportQuery, pack.getQuery(), resultingParams.toArray(), new ResultSetHandler<List>() {
                 @Override
                 public List handle(ResultSet rs) throws SQLException {
                     List<Object[]> resList = new ArrayList<Object[]>();
@@ -109,13 +113,12 @@ public class SqlDataLoader extends AbstractDbDataLoader {
                     }
                 }
             });
+            return fillOutputData(resList, outputValues);
         } catch (DataLoadingException e) {
             throw e;
         } catch (Throwable e) {
             throw new DataLoadingException(String.format("An error occurred while loading data for data set [%s]", reportQuery.getName()), e);
         }
-
-        return fillOutputData(resList, outputValues);
     }
 
     protected List runQuery(ReportQuery reportQuery, String queryString, Object[] params, ResultSetHandler<List> handler) throws SQLException {
