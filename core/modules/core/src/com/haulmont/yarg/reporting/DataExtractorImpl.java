@@ -16,12 +16,9 @@
 
 package com.haulmont.yarg.reporting;
 
-import com.google.common.base.Preconditions;
 import com.haulmont.yarg.loaders.factory.ReportLoaderFactory;
-import com.haulmont.yarg.reporting.controller.CrossTabExtractionController;
-import com.haulmont.yarg.reporting.controller.ExtractionContext;
+import com.haulmont.yarg.reporting.extraction.*;
 import com.haulmont.yarg.structure.BandData;
-import com.haulmont.yarg.structure.BandOrientation;
 import com.haulmont.yarg.structure.Report;
 import com.haulmont.yarg.structure.ReportBand;
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,26 +27,36 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class DataExtractorImpl implements DataExtractor {
     protected static final Map<String, Object> EMPTY_MAP = Collections.emptyMap();
 
     protected ReportLoaderFactory loaderFactory;
+    protected ExtractionContextFactory contextFactory;
+    protected ExtractionControllerFactory controllerFactory;
 
     protected boolean putEmptyRowIfNoDataSelected = true;
 
-    static {
-        OrientationExtractionRegistry.register(BandOrientation.CROSS, new CrossTabExtractionController());
+    public DataExtractorImpl(ReportLoaderFactory loaderFactory) {
+        checkNotNull(loaderFactory, "\"loaderFactory\" parameter can not be null");
+
+        this.loaderFactory = loaderFactory;
+        this.contextFactory = createContextFactory();
+        this.controllerFactory = createControllerFactory();
     }
 
-    public DataExtractorImpl(ReportLoaderFactory loaderFactory) {
-        Preconditions.checkNotNull(loaderFactory, "\"loaderFactory\" parameter can not be null");
-        this.loaderFactory = loaderFactory;
+    protected ExtractionContextFactory createContextFactory() {
+        return new DefaultExtractionContextFactory(this);
+    }
+
+    protected ExtractionControllerFactory createControllerFactory() {
+        return new DefaultExtractionControllerFactory(loaderFactory);
     }
 
     public void extractData(Report report, Map<String, Object> params, BandData rootBand) {
-        List<Map<String, Object>> rootBandData = OrientationExtractionRegistry.defaultController().extractData(
-                loaderFactory,
-                new ExtractionContext(this, report.getRootBand(), null, params)
+        List<Map<String, Object>> rootBandData = controllerFactory.defaultController().extractData(
+                new ExtractionContextImpl(this, report.getRootBand(), null, params)
         );
         if (CollectionUtils.isNotEmpty(rootBandData)) {
             rootBand.getData().putAll(rootBandData.get(0));
@@ -75,7 +82,7 @@ public class DataExtractorImpl implements DataExtractor {
     }
 
     protected List<BandData> createBands(ReportBand definition, BandData parentBandData, Map<String, Object> params) {
-        return OrientationExtractionRegistry.controller(definition.getBandOrientation())
-                .extract(loaderFactory, new ExtractionContext(this, definition, parentBandData, params));
+        return controllerFactory.controllerBy(definition.getBandOrientation())
+                .extract(contextFactory.context(definition, parentBandData, params));
     }
 }

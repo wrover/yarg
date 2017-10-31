@@ -17,19 +17,16 @@
 package com.haulmont.yarg.loaders.impl;
 
 import com.haulmont.yarg.exception.DataLoadingException;
-import com.haulmont.yarg.loaders.impl.sql.CrossTabLinksPreprocessor;
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.ReportQuery;
 import com.haulmont.yarg.util.db.QueryRunner;
 import com.haulmont.yarg.util.db.ResultSetHandler;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -55,22 +52,15 @@ public class SqlDataLoader extends AbstractDbDataLoader {
 
     @Override
     public List<Map<String, Object>> loadData(ReportQuery reportQuery, BandData parentBand, Map<String, Object> params) {
-        String query = reportQuery.getScript();
-        if (StringUtils.isBlank(query)) {
-            return Collections.emptyList();
-        }
         try {
-            CrossTabLinksPreprocessor crossTabLinksPreprocessor = new CrossTabLinksPreprocessor(query);
-            query = crossTabLinksPreprocessor.processedQuery();
-            params = crossTabLinksPreprocessor.decorateParams(params);
-
+            String query = reportQuery.getScript();
             final List<OutputValue> outputValues = new ArrayList<>();
             if (Boolean.TRUE.equals(reportQuery.getProcessTemplate())) {
                 query = processQueryTemplate(query, parentBand, params);
             }
             final QueryPack pack = prepareQuery(query, parentBand, params);
 
-            ArrayList<Object> resultingParams = new ArrayList<>();
+            List<Object> resultingParams = new ArrayList<>();
             QueryParameter[] queryParameters = pack.getParams();
             for (QueryParameter queryParameter : queryParameters) {
                 if (queryParameter.isSingleValue()) {
@@ -83,7 +73,7 @@ public class SqlDataLoader extends AbstractDbDataLoader {
             List resList = runQuery(reportQuery, pack.getQuery(), resultingParams.toArray(), new ResultSetHandler<List>() {
                 @Override
                 public List handle(ResultSet rs) throws SQLException {
-                    List<Object[]> resList = new ArrayList<Object[]>();
+                    List<Object[]> resList = new ArrayList<>();
 
                     while (rs.next()) {
                         ResultSetMetaData metaData = rs.getMetaData();
@@ -122,8 +112,7 @@ public class SqlDataLoader extends AbstractDbDataLoader {
     }
 
     protected List runQuery(ReportQuery reportQuery, String queryString, Object[] params, ResultSetHandler<List> handler) throws SQLException {
-        QueryRunner runner = new QueryRunner(getDataSource());
-        return runner.query(queryString, params, handler);
+        return new QueryRunner(getDataSource()).query(queryString, params, handler);
     }
 
     public DataSource getDataSource() {

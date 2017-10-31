@@ -1,6 +1,10 @@
-package com.haulmont.yarg.reporting.controller;
+package com.haulmont.yarg.reporting.extraction.controller;
 
+import com.haulmont.yarg.loaders.factory.DefaultLoaderFactory;
 import com.haulmont.yarg.loaders.factory.ReportLoaderFactory;
+import com.haulmont.yarg.reporting.extraction.ExtractionContext;
+import com.haulmont.yarg.reporting.extraction.ExtractionControllerFactory;
+import com.haulmont.yarg.reporting.extraction.preprocessor.SqlCrosstabPreprocessor;
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.BandOrientation;
 import org.apache.commons.lang3.ObjectUtils;
@@ -15,21 +19,27 @@ public class CrossTabExtractionController extends DefaultExtractionController {
     private static final String HORIZONTAL_BAND = "horizontal";
     private static final String HEADER_TPL = "%s_header";
 
+    public CrossTabExtractionController(ExtractionControllerFactory controllerRegistry, ReportLoaderFactory loaderFactory) {
+        super(controllerRegistry, loaderFactory);
+
+        preprocessorFactory.register(DefaultLoaderFactory.SQL_DATA_LOADER, new SqlCrosstabPreprocessor());
+    }
+
     @Override
-    protected List<Map<String, Object>> getQueriesResult(ReportLoaderFactory loaderFactory, ExtractionContext context) {
+    protected List<Map<String, Object>> getQueriesResult(ExtractionContext context) {
         Map<String, Object> crossTabParams = new HashMap<>(context.getParams());
         getQueries(context)
                 .filter(e-> e.getName().endsWith(VERTICAL_BAND) || e.getName().endsWith(HORIZONTAL_BAND))
-                .forEach(q-> crossTabParams.put(q.getName(), getQueryData(loaderFactory, context, q)));
+                .forEach(q-> crossTabParams.put(q.getName(), getQueryData(context, q)));
 
         return getQueriesResult(
                 getQueries(context)
                         .filter(e-> !e.getName().endsWith(VERTICAL_BAND) && !e.getName().endsWith(HORIZONTAL_BAND))
-                        .iterator(), loaderFactory, context.extendParams(crossTabParams));
+                        .iterator(), context.extendParams(crossTabParams));
     }
 
     @Override
-    protected List<BandData> traverseData(ReportLoaderFactory loaderFactory, ExtractionContext context, List<Map<String, Object>> outputData) {
+    protected List<BandData> traverseData(ExtractionContext context, List<Map<String, Object>> outputData) {
         String horizontalKey = getQueries(context)
                 .filter(e-> e.getName().endsWith(HORIZONTAL_BAND)).findFirst().get().getName();
         String verticalKey = getQueries(context)
@@ -37,7 +47,6 @@ public class CrossTabExtractionController extends DefaultExtractionController {
         BandData header = new BandData(String.format(HEADER_TPL, context.getBand().getName()),
                 context.getParentBandData(), BandOrientation.HORIZONTAL);
         header.setData(Collections.emptyMap());
-        context.getParentBandData().addChild(header);
 
         String horizontalDataLink = outputData.stream().findFirst().map(data->
                 data.keySet().stream().filter(key-> key.startsWith(horizontalKey)).findFirst().orElse(null))
@@ -71,12 +80,11 @@ public class CrossTabExtractionController extends DefaultExtractionController {
                 .orElse(Collections.emptyList()).stream().map(vData-> {
                     BandData horizontal = new BandData(verticalKey, context.getParentBandData(), BandOrientation.HORIZONTAL);
                     horizontal.setData(vData);
-                    context.getParentBandData().addChild(horizontal);
 
                     for (BandData hData : horizontalValues) {
                         Map<String, Object> crossTabData = outputDataMap.get(new CrossKey(
                                 hData.getData().get(horizontalLink), vData.get(verticalLink)));
-                        horizontal.addChild(wrapData(loaderFactory, context.withParentData(horizontal), crossTabData));
+                        horizontal.addChild(wrapData(context.withParentData(horizontal), crossTabData));
                     }
                     return horizontal;
         }).collect(Collectors.toList());
@@ -85,7 +93,7 @@ public class CrossTabExtractionController extends DefaultExtractionController {
     }
 
     @Override
-    protected BandData wrapData(ReportLoaderFactory loaderFactory, ExtractionContext context, Map<String, Object> data) {
+    protected BandData wrapData(ExtractionContext context, Map<String, Object> data) {
         final BandData bandData = new BandData(context.getBand().getName(), context.getParentBandData(), BandOrientation.VERTICAL);
         bandData.setData(ObjectUtils.defaultIfNull(data, new HashMap<>()));
         return bandData;

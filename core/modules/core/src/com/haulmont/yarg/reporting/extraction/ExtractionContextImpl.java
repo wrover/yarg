@@ -1,4 +1,4 @@
-package com.haulmont.yarg.reporting.controller;
+package com.haulmont.yarg.reporting.extraction;
 
 import com.haulmont.yarg.reporting.DataExtractor;
 import com.haulmont.yarg.structure.BandData;
@@ -9,13 +9,13 @@ import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class ExtractionContext {
+public class ExtractionContextImpl implements ExtractionContext {
     protected DataExtractor extractor;
     protected ReportBand band;
     protected BandData parentBand;
     protected Map<String, Object> params;
 
-    public ExtractionContext(DataExtractor extractor, ReportBand band, BandData parentBand, Map<String, Object> params) {
+    public ExtractionContextImpl(DataExtractor extractor, ReportBand band, BandData parentBand, Map<String, Object> params) {
         checkNotNull(extractor);
         checkNotNull(band);
         checkNotNull(params);
@@ -42,20 +42,20 @@ public class ExtractionContext {
         return Collections.unmodifiableMap(params);
     }
 
-    public ExtractionContext extendParams(Map<String, Object> params) {
+    public ExtractionContextImpl extendParams(Map<String, Object> params) {
         this.params.putAll(params);
         return this;
     }
 
-    public ExtractionContext withParams(Map<String, Object> params) {
-        return new ExtractionContext(extractor, band, parentBand, params);
+    public ExtractionContextImpl withParams(Map<String, Object> params) {
+        return new ExtractionContextImpl(extractor, band, parentBand, params);
     }
 
-    public ExtractionContext withBand(ReportBand band) {
-        return new ExtractionContext(extractor, band, parentBand, params);
+    public ExtractionContextImpl withBand(ReportBand band) {
+        return new ExtractionContextImpl(extractor, band, parentBand, params);
     }
 
-    public ExtractionContext withParentData(BandData parentBand) {
-        return new ExtractionContext(extractor, band, parentBand, params);
+    public ExtractionContextImpl withParentData(BandData parentBand) {
+        return new ExtractionContextImpl(extractor, band, parentBand, params);
     }
 }
