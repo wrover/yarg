@@ -173,8 +173,13 @@ public class DefaultExtractionController implements ExtractionController {
         try {
             ReportDataLoader dataLoader = loaderFactory.createDataLoader(reportQuery.getLoaderType());
             return preprocessorFactory.processorBy(reportQuery.getLoaderType())
-                    .preprocess(reportQuery, context.getParams(), (processedQuery, processedParams)->
-                        dataLoader.loadData(processedQuery, context.getParentBandData(), processedParams));
+                    .preprocess(reportQuery, new HashMap<>(context.getParams()), (processedQuery, processedParams)-> {
+                        //fixme: ugly params overloading support, needs to push context object for dependent logic
+                        List<Map<String, Object>> result = dataLoader.loadData(processedQuery,
+                                context.getParentBandData(), processedParams);
+                        context.extendParams(processedParams);
+                        return result;
+                    });
         } catch (ValidationException e) {
             throw e;
         } catch (Exception e) {
