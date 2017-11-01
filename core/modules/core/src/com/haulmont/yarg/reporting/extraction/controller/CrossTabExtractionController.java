@@ -19,8 +19,8 @@ public class CrossTabExtractionController extends DefaultExtractionController {
     private static final String HORIZONTAL_BAND = "horizontal";
     private static final String HEADER_TPL = "%s_header";
 
-    public CrossTabExtractionController(ExtractionControllerFactory controllerRegistry, ReportLoaderFactory loaderFactory) {
-        super(controllerRegistry, loaderFactory);
+    public CrossTabExtractionController(ExtractionControllerFactory controllerFactory, ReportLoaderFactory loaderFactory) {
+        super(controllerFactory, loaderFactory);
 
         preprocessorFactory.register(DefaultLoaderFactory.SQL_DATA_LOADER, new SqlCrosstabPreprocessor());
     }

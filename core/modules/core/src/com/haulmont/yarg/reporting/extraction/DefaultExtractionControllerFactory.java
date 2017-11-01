@@ -4,6 +4,7 @@ import com.haulmont.yarg.loaders.factory.ReportLoaderFactory;
 import com.haulmont.yarg.reporting.extraction.controller.DefaultExtractionController;
 import com.haulmont.yarg.structure.BandOrientation;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
@@ -41,5 +42,17 @@ public class DefaultExtractionControllerFactory implements ExtractionControllerF
     @Override
     public ExtractionController defaultController() {
         return defaultExtractionController;
+    }
+
+    @Override
+    public Map<BandOrientation, ExtractionController> getExtractionControllers() {
+        return Collections.unmodifiableMap(extractionControllerMap);
+    }
+
+    @Override
+    public void setExtractionControllers(Map<BandOrientation, ExtractionController> extractionControllers) {
+        checkNotNull(extractionControllers);
+
+        extractionControllerMap = extractionControllers;
     }
 }

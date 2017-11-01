@@ -25,6 +25,9 @@ public class DefaultExtractionController implements ExtractionController {
     protected PreprocessorFactory preprocessorFactory;
 
     public DefaultExtractionController(ExtractionControllerFactory controllerRegistry, ReportLoaderFactory loaderFactory) {
+        checkNotNull(controllerRegistry);
+        checkNotNull(loaderFactory);
+
         this.loaderFactory = loaderFactory;
         this.controllerRegistry = controllerRegistry;
         this.preprocessorFactory = createPreprocessorFactory();
@@ -78,6 +81,18 @@ public class DefaultExtractionController implements ExtractionController {
         }
 
         return result;
+    }
+
+    @Override
+    public void setPreprocessorFactory(PreprocessorFactory preprocessorFactory) {
+        checkNotNull(preprocessorFactory);
+
+        this.preprocessorFactory = preprocessorFactory;
+    }
+
+    @Override
+    public PreprocessorFactory getPreprocessorFactory() {
+        return preprocessorFactory;
     }
 
     protected List<BandData> traverseData(ExtractionContext context, List<Map<String, Object>> outputData) {
@@ -171,5 +186,4 @@ public class DefaultExtractionController implements ExtractionController {
     protected boolean isEmptyBand(BandData parentBand) {
         return parentBand != null && parentBand.getData() == Collections.EMPTY_MAP;
     }
-
 }

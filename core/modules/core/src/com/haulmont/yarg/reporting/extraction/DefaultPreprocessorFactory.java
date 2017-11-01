@@ -2,8 +2,11 @@ package com.haulmont.yarg.reporting.extraction;
 
 import com.haulmont.yarg.loaders.QueryLoaderPreprocessor;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class DefaultPreprocessorFactory implements PreprocessorFactory {
     protected QueryLoaderPreprocessor defaultPreprocessor;
@@ -25,5 +28,17 @@ public class DefaultPreprocessorFactory implements PreprocessorFactory {
     @Override
     public QueryLoaderPreprocessor processorBy(String loaderType) {
         return preprocessorMap.getOrDefault(loaderType, defaultPreprocessor);
+    }
+
+    @Override
+    public void setPreprocessors(Map<String, QueryLoaderPreprocessor> preprocessors) {
+        checkNotNull(preprocessors);
+
+        preprocessorMap = preprocessors;
+    }
+
+    @Override
+    public Map<String, QueryLoaderPreprocessor> getPreprocessors() {
+        return Collections.unmodifiableMap(preprocessorMap);
     }
 }

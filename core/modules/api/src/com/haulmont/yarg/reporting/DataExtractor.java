@@ -15,6 +15,7 @@
  */
 package com.haulmont.yarg.reporting;
 
+import com.haulmont.yarg.reporting.extraction.ExtractionControllerFactory;
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.Report;
 
@@ -29,4 +30,8 @@ public interface DataExtractor {
     void extractData(Report report, Map<String, Object> params, BandData rootBand);
 
     default boolean getPutEmptyRowIfNoDataSelected() { return true; }
+
+    ExtractionControllerFactory getExtractionControllerFactory();
+
+    void setExtractionControllerFactory(ExtractionControllerFactory controllerFactory);
 }

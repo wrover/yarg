@@ -14,4 +14,8 @@ public interface ExtractionController {
     default List<Map<String, Object>> extractData(ExtractionContext context) {
         return Collections.emptyList();
     }
+
+    default void setPreprocessorFactory(PreprocessorFactory preprocessorsFactory) {}
+
+    default PreprocessorFactory getPreprocessorFactory() { return null; }
 }
