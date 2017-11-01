@@ -16,7 +16,9 @@ import java.util.stream.Stream;
 
 public class CrossTabExtractionController extends DefaultExtractionController {
     private static final String VERTICAL_BAND = "vertical";
+    private static final String VERTICAL_KEY_TPL = "%s_" + VERTICAL_BAND;
     private static final String HORIZONTAL_BAND = "horizontal";
+    private static final String HORIZONTAL_KEY_TPL = "%s_" + HORIZONTAL_BAND;
     private static final String HEADER_TPL = "%s_header";
 
     public CrossTabExtractionController(ExtractionControllerFactory controllerFactory, ReportLoaderFactory loaderFactory) {
@@ -40,10 +42,8 @@ public class CrossTabExtractionController extends DefaultExtractionController {
 
     @Override
     protected List<BandData> traverseData(ExtractionContext context, List<Map<String, Object>> outputData) {
-        String horizontalKey = getQueries(context)
-                .filter(e-> e.getName().endsWith(HORIZONTAL_BAND)).findFirst().get().getName();
-        String verticalKey = getQueries(context)
-                .filter(e-> e.getName().endsWith(VERTICAL_BAND)).findFirst().get().getName();
+        String horizontalKey = String.format(HORIZONTAL_KEY_TPL, context.getBand().getName());
+        String verticalKey = String.format(VERTICAL_KEY_TPL, context.getBand().getName());
         BandData header = new BandData(String.format(HEADER_TPL, context.getBand().getName()),
                 context.getParentBandData(), BandOrientation.HORIZONTAL);
         header.setData(Collections.emptyMap());

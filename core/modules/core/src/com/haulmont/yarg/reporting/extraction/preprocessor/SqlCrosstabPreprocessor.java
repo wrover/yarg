@@ -36,7 +36,8 @@ public class SqlCrosstabPreprocessor implements QueryLoaderPreprocessor {
         Map<String, Object> decoratedParams = new HashMap<>(params);
         references.entries().forEach(e-> {
             List<Map<String, Object>> qValues = ObjectUtils
-                    .defaultIfNull((List<Map<String, Object>>)params.get(e.getKey()), Collections.emptyList());
+                    .defaultIfNull((List<Map<String, Object>>)params.get(e.getKey()),
+                            Collections.singletonList(Collections.emptyMap()));
             decoratedParams.put(String.format(REF_NAME, e.getKey(), e.getValue()),
                     qValues.stream().map(data-> data.get(e.getValue()))
                             .filter(Objects::nonNull).collect(Collectors.toList()));
