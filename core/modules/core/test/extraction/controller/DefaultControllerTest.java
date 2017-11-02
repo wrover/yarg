@@ -47,7 +47,7 @@ public class DefaultControllerTest {
     }
 
     @Test
-    public void testExtractionForHorizontalOrientation() throws IOException {
+    public void testExtractionForCrosstabBand() throws IOException {
         ReportBand band = YmlDataUtil.bandFrom(new File("test/extraction/fixture/default_report_band.yml"));
         BandData rootBand = new BandData(BandData.ROOT_BAND_NAME);
         rootBand.setData(new HashMap<>());
@@ -57,7 +57,7 @@ public class DefaultControllerTest {
 
         for (ReportBand definition : band.getChildren()) {
             List<BandData> data = controllerFactory.controllerBy(definition.getBandOrientation())
-                    .extract(contextFactory.context(definition, null, new HashMap<>()));
+                    .extract(contextFactory.context(definition, rootBand, new HashMap<>()));
 
             Assert.assertNotNull(data);
 
