@@ -15,11 +15,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CrossTabExtractionController extends DefaultExtractionController {
-    private static final String VERTICAL_BAND = "vertical";
-    private static final String VERTICAL_KEY_TPL = "%s_" + VERTICAL_BAND;
-    private static final String HORIZONTAL_BAND = "horizontal";
-    private static final String HORIZONTAL_KEY_TPL = "%s_" + HORIZONTAL_BAND;
-    private static final String HEADER_TPL = "%s_header";
+
+    public static final String VERTICAL_BAND = "dynamic_header";
+    public static final String VERTICAL_KEY_TPL = "%s_" + VERTICAL_BAND;
+    public static final String HORIZONTAL_BAND = "header";
+    public static final String HORIZONTAL_KEY_TPL = "%s_" + HORIZONTAL_BAND;
+    public static final String HEADER_TPL = "%s_" + HORIZONTAL_BAND;
 
     public CrossTabExtractionController(ExtractionControllerFactory controllerFactory, ReportLoaderFactory loaderFactory) {
         super(controllerFactory, loaderFactory);
