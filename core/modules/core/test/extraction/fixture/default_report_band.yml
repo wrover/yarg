@@ -1,0 +1,23 @@
+name: Root
+children:
+  - name: header
+    orientation: H
+    children:
+      - name: dynamic_header
+        orientation: V
+        queries:
+          - name: dynamic_header
+            sql: select name as month_name , id as month_id from months;
+  - name: master_data
+    orientation: H
+    queries:
+      - name: master_data
+        sql: select id as user_id , login from sec_user;
+    children:
+      - name: data
+        orientation: V
+        queries:
+          - name: data
+            sql: select name as month_name , id as month_id from months;
+
+

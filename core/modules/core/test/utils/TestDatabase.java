@@ -1,7 +1,6 @@
 package utils;
 
 import com.haulmont.yarg.util.DatasourceCreator;
-import org.hsqldb.Server;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -9,19 +8,11 @@ import java.sql.SQLException;
 
 public class TestDatabase {
     private DataSource ds;
-    private Server hsqlServer;
 
     public void setUpDatabase() throws Exception {
-        hsqlServer = new Server();
-
-        hsqlServer.setLogWriter(null);
-        hsqlServer.setSilent(true);
-
-        hsqlServer.setDatabaseName(0, "reportingDb");
-        hsqlServer.setDatabasePath(0, "file:./db/testdb");
-
-        hsqlServer.start();
-        ds = DatasourceCreator.setupDataSource("org.hsqldb.jdbcDriver", "jdbc:hsqldb:hsql://localhost/reportingDb", "sa", "", 10, 10, 0);
+        ds = DatasourceCreator.setupDataSource(
+                "org.h2.Driver",
+                "jdbc:h2:mem:reportingDb;MODE=PostgreSQL;AUTO_RECONNECT=TRUE", "sa", "", 10, 10, 0);
 
         Connection connection = ds.getConnection();
         try {
@@ -41,10 +32,6 @@ public class TestDatabase {
     }
 
     public void stop() {
-        try {
-            hsqlServer.shutdown();
-        } catch (Exception e) {
-            //ignore
-        }
+        //maybe later for server version
     }
 }

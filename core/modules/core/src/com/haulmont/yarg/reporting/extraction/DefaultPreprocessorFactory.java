@@ -30,14 +30,12 @@ public class DefaultPreprocessorFactory implements PreprocessorFactory {
         return preprocessorMap.getOrDefault(loaderType, defaultPreprocessor);
     }
 
-    @Override
     public void setPreprocessors(Map<String, QueryLoaderPreprocessor> preprocessors) {
         checkNotNull(preprocessors);
 
         preprocessorMap = preprocessors;
     }
 
-    @Override
     public Map<String, QueryLoaderPreprocessor> getPreprocessors() {
         return Collections.unmodifiableMap(preprocessorMap);
     }

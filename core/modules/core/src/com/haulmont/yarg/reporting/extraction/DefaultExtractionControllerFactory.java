@@ -44,12 +44,10 @@ public class DefaultExtractionControllerFactory implements ExtractionControllerF
         return defaultExtractionController;
     }
 
-    @Override
     public Map<BandOrientation, ExtractionController> getExtractionControllers() {
         return Collections.unmodifiableMap(extractionControllerMap);
     }
 
-    @Override
     public void setExtractionControllers(Map<BandOrientation, ExtractionController> extractionControllers) {
         checkNotNull(extractionControllers);
 

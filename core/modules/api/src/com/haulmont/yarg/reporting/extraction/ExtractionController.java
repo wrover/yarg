@@ -15,7 +15,4 @@ public interface ExtractionController {
         return Collections.emptyList();
     }
 
-    default void setPreprocessorFactory(PreprocessorFactory preprocessorsFactory) {}
-
-    default PreprocessorFactory getPreprocessorFactory() { return null; }
 }

@@ -3,7 +3,6 @@ package com.haulmont.yarg.reporting.extraction;
 import com.haulmont.yarg.loaders.factory.ReportLoaderFactory;
 import com.haulmont.yarg.structure.BandOrientation;
 
-import java.util.Map;
 import java.util.function.BiFunction;
 
 public interface ExtractionControllerFactory {
@@ -12,8 +11,4 @@ public interface ExtractionControllerFactory {
     ExtractionController controllerBy(BandOrientation orientation);
 
     ExtractionController defaultController();
-
-    Map<BandOrientation, ExtractionController> getExtractionControllers();
-
-    void setExtractionControllers(Map<BandOrientation, ExtractionController> extractionControllers);
 }

@@ -15,7 +15,6 @@
  */
 package com.haulmont.yarg.reporting;
 
-import com.haulmont.yarg.reporting.extraction.ExtractionControllerFactory;
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.Report;
 
@@ -26,12 +25,9 @@ import java.util.Map;
  * The default implementation is com.haulmont.yarg.reporting.DataExtractorImpl
  * !Attention! Please make sure if you really need to change this behaviour against default implementation cause it might crash report generation logic
  */
+@FunctionalInterface
 public interface DataExtractor {
     void extractData(Report report, Map<String, Object> params, BandData rootBand);
 
     default boolean getPutEmptyRowIfNoDataSelected() { return true; }
-
-    ExtractionControllerFactory getExtractionControllerFactory();
-
-    void setExtractionControllerFactory(ExtractionControllerFactory controllerFactory);
 }

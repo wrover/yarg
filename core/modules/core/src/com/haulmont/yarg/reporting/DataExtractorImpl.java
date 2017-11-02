@@ -81,12 +81,10 @@ public class DataExtractorImpl implements DataExtractor {
         return putEmptyRowIfNoDataSelected;
     }
 
-    @Override
     public ExtractionControllerFactory getExtractionControllerFactory() {
         return controllerFactory;
     }
 
-    @Override
     public void setExtractionControllerFactory(ExtractionControllerFactory controllerFactory) {
         checkNotNull(controllerFactory, "\"controllerFactory\" parameter can not be null");
 

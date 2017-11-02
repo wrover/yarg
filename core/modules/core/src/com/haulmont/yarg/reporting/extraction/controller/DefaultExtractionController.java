@@ -83,14 +83,12 @@ public class DefaultExtractionController implements ExtractionController {
         return result;
     }
 
-    @Override
     public void setPreprocessorFactory(PreprocessorFactory preprocessorFactory) {
         checkNotNull(preprocessorFactory);
 
         this.preprocessorFactory = preprocessorFactory;
     }
 
-    @Override
     public PreprocessorFactory getPreprocessorFactory() {
         return preprocessorFactory;
     }

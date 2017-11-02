@@ -1,0 +1,15 @@
+name: Root
+children:
+  - name: crosstab
+    orientation: C
+    queries:
+      - #Horizontal tab
+        name: crosstab_dynamic_header
+        script:
+      - #Vertical tab
+        name: crosstab_master_data
+        script:
+      - #Cross data tab - one execution for all intersections
+        name: data
+        script:
+
