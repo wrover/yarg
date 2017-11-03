@@ -108,7 +108,9 @@ public class DefaultExtractionController implements ExtractionController {
             for (ReportBand childDefinition : childrenBandDefinitions) {
                 List<BandData> childBands = controllerRegistry
                         .controllerBy(childDefinition.getBandOrientation())
-                        .extract(context.withBand(childDefinition));
+                        .extract(context
+                                .withBand(childDefinition)
+                                .withParentData(band));
                 band.addChildren(childBands);
             }
         }

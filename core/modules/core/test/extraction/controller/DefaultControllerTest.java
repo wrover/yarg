@@ -1,5 +1,7 @@
 package extraction.controller;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.haulmont.yarg.loaders.factory.DefaultLoaderFactory;
 import com.haulmont.yarg.loaders.impl.SqlDataLoader;
 import com.haulmont.yarg.reporting.extraction.DefaultExtractionContextFactory;
@@ -7,6 +9,8 @@ import com.haulmont.yarg.reporting.extraction.DefaultExtractionControllerFactory
 import com.haulmont.yarg.reporting.extraction.ExtractionContextFactory;
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.ReportBand;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -19,10 +23,7 @@ import utils.YmlDataUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DefaultControllerTest {
 
@@ -53,7 +54,7 @@ public class DefaultControllerTest {
         rootBand.setData(new HashMap<>());
         rootBand.setFirstLevelBandDefinitionNames(new HashSet<>());
 
-        Map<String, BandData> reportBandMap = new HashMap<>();
+        Multimap<String, BandData> reportBandMap = HashMultimap.create();
 
         for (ReportBand definition : band.getChildren()) {
             List<BandData> data = controllerFactory.controllerBy(definition.getBandOrientation())
@@ -67,6 +68,48 @@ public class DefaultControllerTest {
 
                 reportBandMap.put(b.getName(), b);
             });
+
+            rootBand.addChildren(data);
+            rootBand.getFirstLevelBandDefinitionNames().add(definition.getName());
         }
+
+        checkHeader(reportBandMap.get("header"));
+        checkMasterData(reportBandMap.get("master_data"));
+    }
+
+    private void checkMasterData(Collection<BandData> bandDataCollection) {
+        Assert.assertNotNull(bandDataCollection);
+        Assert.assertEquals(bandDataCollection.size(), 3);
+        bandDataCollection.forEach(bandData-> {
+            Assert.assertTrue(MapUtils.isNotEmpty(bandData.getData()));
+            Assert.assertTrue(CollectionUtils.isNotEmpty(bandData.getChildrenList()));
+            Assert.assertEquals(12, bandData.getChildrenList().size());
+
+            Assert.assertTrue(bandData.getData().containsKey("USER_ID"));
+            Assert.assertTrue(bandData.getData().containsKey("LOGIN"));
+
+            bandData.getChildrenList().forEach(childData-> {
+                Assert.assertNotNull(childData);
+                Assert.assertNotNull(childData.getData());
+            });
+
+            Assert.assertTrue(bandData.getChildrenList().stream().anyMatch(childData->
+                    childData.getData().containsKey("HOURS")));
+        });
+    }
+
+    private void checkHeader(Collection<BandData> bandDataCollection) {
+        Assert.assertNotNull(bandDataCollection);
+        Assert.assertEquals(bandDataCollection.size(), 1);
+        BandData bandData = bandDataCollection.iterator().next();
+        Assert.assertTrue(CollectionUtils.isNotEmpty(bandData.getChildrenList()));
+        Assert.assertEquals(bandData.getChildrenList().size(), 12);
+
+        bandData.getChildrenList().forEach(childData-> {
+            Assert.assertNotNull(childData);
+            Assert.assertNotNull(childData.getData());
+            Assert.assertTrue(childData.getData().containsKey("MONTH_NAME"));
+            Assert.assertTrue(childData.getData().containsKey("MONTH_ID"));
+        });
     }
 }
