@@ -39,7 +39,7 @@ insert into users (login) values
 insert into time_entry (user_id, date_, time_in_minutes)
 	select distinct u.id as user_id,
 									(year(curdate()) || '-' || to_char(month.x, 'fm00')||'-'|| to_char(day.x, 'fm00'))::date as date_,
-									((random() * random()) * 8 + 2)::int time_in_minutes
+									(random() * 8 + 2)::int time_in_minutes
 	from users u,
 				system_range(1, random(30) * 28 + 2, 2) as day,
 				system_range(1, random(30) * 11 + 1) as month
