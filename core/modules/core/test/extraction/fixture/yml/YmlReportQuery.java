@@ -2,9 +2,9 @@ package extraction.fixture.yml;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.haulmont.yarg.structure.ReportQuery;
 
-import java.util.Collections;
 import java.util.Map;
 
 import static com.haulmont.yarg.loaders.factory.DefaultLoaderFactory.*;
@@ -18,6 +18,9 @@ public class YmlReportQuery implements ReportQuery {
 
     @JsonIgnore
     protected String script;
+
+    @JsonProperty("params")
+    protected Map<String, Object> additionalParams;
 
     @Override
     public String getName() {
@@ -46,7 +49,7 @@ public class YmlReportQuery implements ReportQuery {
 
     @Override
     public Map<String, Object> getAdditionalParams() {
-        return Collections.emptyMap();
+        return additionalParams;
     }
 
     @JsonAnySetter

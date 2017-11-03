@@ -3,12 +3,15 @@ package extraction.controller;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.haulmont.yarg.loaders.factory.DefaultLoaderFactory;
+import com.haulmont.yarg.loaders.impl.GroovyDataLoader;
+import com.haulmont.yarg.loaders.impl.JsonDataLoader;
 import com.haulmont.yarg.loaders.impl.SqlDataLoader;
 import com.haulmont.yarg.reporting.extraction.DefaultExtractionContextFactory;
 import com.haulmont.yarg.reporting.extraction.DefaultExtractionControllerFactory;
 import com.haulmont.yarg.reporting.extraction.ExtractionContextFactory;
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.ReportBand;
+import com.haulmont.yarg.util.groovy.DefaultScriptingImpl;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -20,10 +23,8 @@ import utils.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Stream;
 
 public class DefaultControllerTest {
 
@@ -40,6 +41,8 @@ public class DefaultControllerTest {
         FixtureUtils.loadDb(database.getDs(), "extraction/fixture/controller_test.sql");
 
         loaderFactory.setSqlDataLoader(new SqlDataLoader(database.getDs()));
+        loaderFactory.setGroovyDataLoader(new GroovyDataLoader(new DefaultScriptingImpl()));
+        loaderFactory.setJsonDataLoader(new JsonDataLoader());
     }
 
     @AfterClass
@@ -48,8 +51,8 @@ public class DefaultControllerTest {
     }
 
     @Test
-    public void testExtractionForCrosstabBand() throws IOException, URISyntaxException {
-        ReportBand band = YmlDataUtil.bandFrom(FileLoader.load("extraction/fixture/default_report_band.yml"));
+    public void testSqlExtractionForCrosstabBand() throws IOException, URISyntaxException {
+        ReportBand band = YmlDataUtil.bandFrom(FileLoader.load("extraction/fixture/default_sql_report_band.yml"));
         BandData rootBand = new BandData(BandData.ROOT_BAND_NAME);
         rootBand.setData(new HashMap<>());
         rootBand.setFirstLevelBandDefinitionNames(new HashSet<>());
@@ -73,43 +76,118 @@ public class DefaultControllerTest {
             rootBand.getFirstLevelBandDefinitionNames().add(definition.getName());
         }
 
-        checkHeader(reportBandMap.get("header"));
-        checkMasterData(reportBandMap.get("master_data"));
+        checkHeader(reportBandMap.get("header"), 12, "MONTH_NAME", "MONTH_ID");
+        checkMasterData(reportBandMap.get("master_data"), 3, 12,
+                "USER_ID", "LOGIN", "HOURS");
     }
 
-    private void checkMasterData(Collection<BandData> bandDataCollection) {
+    @Test
+    public void testGroovyExtractionForBand() throws IOException, URISyntaxException {
+        ReportBand band = YmlDataUtil.bandFrom(FileLoader.load("extraction/fixture/default_groovy_report_band.yml"));
+
+        BandData rootBand = new BandData(BandData.ROOT_BAND_NAME);
+        rootBand.setData(new HashMap<>());
+        rootBand.setFirstLevelBandDefinitionNames(new HashSet<>());
+
+        Multimap<String, BandData> reportBandMap = HashMultimap.create();
+
+        for (ReportBand definition : band.getChildren()) {
+            List<BandData> data = controllerFactory.controllerBy(definition.getBandOrientation())
+                    .extract(contextFactory.context(definition, rootBand, new HashMap<>()));
+
+            Assert.assertNotNull(data);
+
+            data.forEach(b-> {
+                Assert.assertNotNull(b);
+                Assert.assertTrue(StringUtils.isNotEmpty(b.getName()));
+
+                reportBandMap.put(b.getName(), b);
+            });
+
+            rootBand.addChildren(data);
+            rootBand.getFirstLevelBandDefinitionNames().add(definition.getName());
+        }
+
+        checkHeader(reportBandMap.get("header"), 2, "name", "id");
+        checkMasterData(reportBandMap.get("master_data"), 2, 2,
+                "id", "name", "value", "user_id");
+    }
+
+    @Test
+    public void testJsonExtractionForBand() throws IOException, URISyntaxException {
+        ReportBand band = YmlDataUtil.bandFrom(FileLoader.load("extraction/fixture/default_json_report_band.yml"));
+
+        BandData rootBand = new BandData(BandData.ROOT_BAND_NAME);
+        rootBand.setData(new HashMap<>());
+        rootBand.setFirstLevelBandDefinitionNames(new HashSet<>());
+
+        Multimap<String, BandData> reportBandMap = HashMultimap.create();
+
+        for (ReportBand definition : band.getChildren()) {
+            List<BandData> data = controllerFactory.controllerBy(definition.getBandOrientation())
+                    .extract(contextFactory.context(definition, rootBand, new HashMap<>()));
+
+            Assert.assertNotNull(data);
+
+            data.forEach(b-> {
+                Assert.assertNotNull(b);
+                Assert.assertTrue(StringUtils.isNotEmpty(b.getName()));
+
+                reportBandMap.put(b.getName(), b);
+            });
+
+            rootBand.addChildren(data);
+            rootBand.getFirstLevelBandDefinitionNames().add(definition.getName());
+        }
+
+        checkHeader(reportBandMap.get("header"), 2, "name", "id");
+        checkMasterData(reportBandMap.get("master_data"), 2, 2,
+                "id", "name", "value", "user_id");
+    }
+
+    private void checkHeader(Collection<BandData> bandDataCollection, int expected, String... headerFields) {
         Assert.assertNotNull(bandDataCollection);
-        Assert.assertEquals(bandDataCollection.size(), 3);
+        Assert.assertEquals(bandDataCollection.size(), 1);
+        BandData bandData = bandDataCollection.iterator().next();
+        Assert.assertTrue(CollectionUtils.isNotEmpty(bandData.getChildrenList()));
+        Assert.assertEquals(bandData.getChildrenList().size(), expected);
+
+        bandData.getChildrenList().forEach(childData-> {
+            Assert.assertNotNull(childData);
+            Assert.assertNotNull(childData.getData());
+            Stream.of(headerFields).forEach(key-> Assert.assertTrue(childData.getData().containsKey(key)));
+        });
+    }
+
+    private void checkMasterData(Collection<BandData> bandDataCollection, int expectedMasterDataCount, int expectedCrossDataCount, String... fields) {
+        Assert.assertNotNull(bandDataCollection);
+        Assert.assertEquals(bandDataCollection.size(), expectedMasterDataCount);
+
         bandDataCollection.forEach(bandData-> {
             Assert.assertTrue(MapUtils.isNotEmpty(bandData.getData()));
             Assert.assertTrue(CollectionUtils.isNotEmpty(bandData.getChildrenList()));
-            Assert.assertEquals(12, bandData.getChildrenList().size());
+            Assert.assertEquals(expectedCrossDataCount, bandData.getChildrenList().size());
 
-            Assert.assertTrue(bandData.getData().containsKey("USER_ID"));
-            Assert.assertTrue(bandData.getData().containsKey("LOGIN"));
+            if (fields.length > 0) {
+                Assert.assertTrue(bandData.getData().containsKey(fields[0]));
+            }
+            if (fields.length > 1) {
+                Assert.assertTrue(bandData.getData().containsKey(fields[1]));
+            }
 
             bandData.getChildrenList().forEach(childData-> {
                 Assert.assertNotNull(childData);
                 Assert.assertNotNull(childData.getData());
             });
-
-            Assert.assertTrue(bandData.getChildrenList().stream().anyMatch(childData->
-                    childData.getData().containsKey("HOURS")));
-        });
-    }
-
-    private void checkHeader(Collection<BandData> bandDataCollection) {
-        Assert.assertNotNull(bandDataCollection);
-        Assert.assertEquals(bandDataCollection.size(), 1);
-        BandData bandData = bandDataCollection.iterator().next();
-        Assert.assertTrue(CollectionUtils.isNotEmpty(bandData.getChildrenList()));
-        Assert.assertEquals(bandData.getChildrenList().size(), 12);
-
-        bandData.getChildrenList().forEach(childData-> {
-            Assert.assertNotNull(childData);
-            Assert.assertNotNull(childData.getData());
-            Assert.assertTrue(childData.getData().containsKey("MONTH_NAME"));
-            Assert.assertTrue(childData.getData().containsKey("MONTH_ID"));
+            if (fields.length > 2) {
+                List<String> childFields = Arrays.asList(fields).subList(2, fields.length - 1);
+                Assert.assertTrue(bandData.getChildrenList().stream().anyMatch(childData-> {
+                    for (String field : childFields) {
+                        if (!childData.getData().containsKey(field)) return false;
+                    }
+                    return true;
+                }));
+            }
         });
     }
 }

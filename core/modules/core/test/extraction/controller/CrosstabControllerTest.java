@@ -3,6 +3,8 @@ package extraction.controller;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.haulmont.yarg.loaders.factory.DefaultLoaderFactory;
+import com.haulmont.yarg.loaders.impl.GroovyDataLoader;
+import com.haulmont.yarg.loaders.impl.JsonDataLoader;
 import com.haulmont.yarg.loaders.impl.SqlDataLoader;
 import com.haulmont.yarg.reporting.extraction.DefaultExtractionContextFactory;
 import com.haulmont.yarg.reporting.extraction.DefaultExtractionControllerFactory;
@@ -11,6 +13,7 @@ import com.haulmont.yarg.reporting.extraction.controller.CrossTabExtractionContr
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.BandOrientation;
 import com.haulmont.yarg.structure.ReportBand;
+import com.haulmont.yarg.util.groovy.DefaultScriptingImpl;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -39,6 +42,8 @@ public class CrosstabControllerTest {
         FixtureUtils.loadDb(database.getDs(), "extraction/fixture/controller_test.sql");
 
         loaderFactory.setSqlDataLoader(new SqlDataLoader(database.getDs()));
+        loaderFactory.setGroovyDataLoader(new GroovyDataLoader(new DefaultScriptingImpl()));
+        loaderFactory.setJsonDataLoader(new JsonDataLoader());
     }
 
     @AfterClass
