@@ -18,11 +18,11 @@ children:
         orientation: V
         queries:
           - name: data
-            sql: select sum(e.time_in_minutes) as hours
+            sql: "select sum(e.time_in_minutes) as hours
                  from sec_user u
                    CROSS JOIN months m
                    left join ts_time_entry e on u.id = e.user_id and m.id = month(e.date_)
                   where u.id = ${master_data.user_id}
-                group by u.id, m.id;
+                group by u.id, m.id;"
 
 

@@ -18,7 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class SqlCrosstabPreprocessor implements QueryLoaderPreprocessor {
 
-    private static final Pattern REF_PATTERN = Pattern.compile("(\\w+)@(.+)\\b");
+    private static final Pattern REF_PATTERN = Pattern.compile("(\\w+)@(.+?)\\b");
     private static final String REF_NAME = "%s_%s";
 
     @Override
