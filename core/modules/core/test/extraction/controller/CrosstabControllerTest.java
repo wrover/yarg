@@ -14,18 +14,18 @@ import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.BandOrientation;
 import com.haulmont.yarg.structure.ReportBand;
 import com.haulmont.yarg.util.groovy.DefaultScriptingImpl;
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.*;
 import utils.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+
+import static utils.ExtractionUtils.checkHeader;
+import static utils.ExtractionUtils.checkMasterData;
 
 public class CrosstabControllerTest {
 
@@ -57,8 +57,8 @@ public class CrosstabControllerTest {
     }
 
     @Test
-    public void testExtractionForCrosstabBand() throws IOException, URISyntaxException {
-        ReportBand band = YmlDataUtil.bandFrom(FileLoader.load("extraction/fixture/cross_report_band.yml"));
+    public void testSqlExtractionForCrosstabBand() throws IOException, URISyntaxException {
+        ReportBand band = YmlDataUtil.bandFrom(FileLoader.load("extraction/fixture/cross_sql_report_band.yml"));
         BandData rootBand = new BandData(BandData.ROOT_BAND_NAME);
         rootBand.setData(new HashMap<>());
         rootBand.setFirstLevelBandDefinitionNames(new HashSet<>());
@@ -82,43 +82,72 @@ public class CrosstabControllerTest {
             rootBand.getFirstLevelBandDefinitionNames().add(definition.getName());
         }
 
-        checkHeader(reportBandMap.get("crosstab_header"));
-        checkMasterData(reportBandMap.get("crosstab_master_data"));
+        checkHeader(reportBandMap.get("crosstab_header"), 12, "MONTH_NAME", "MONTH_ID");
+        checkMasterData(reportBandMap.get("crosstab_master_data"), 3, 12,
+                "USER_ID", "LOGIN", "HOURS");
     }
 
-    private void checkMasterData(Collection<BandData> bandDataCollection) {
-        Assert.assertNotNull(bandDataCollection);
-        Assert.assertEquals(bandDataCollection.size(), 3);
-        bandDataCollection.forEach(bandData-> {
-            Assert.assertTrue(MapUtils.isNotEmpty(bandData.getData()));
-            Assert.assertTrue(CollectionUtils.isNotEmpty(bandData.getChildrenList()));
-            Assert.assertEquals(12, bandData.getChildrenList().size());
+    @Test
+    public void testGroovyExtractionForBand() throws IOException, URISyntaxException {
+        ReportBand band = YmlDataUtil.bandFrom(FileLoader.load("extraction/fixture/cross_groovy_report_band.yml"));
 
-            Assert.assertTrue(bandData.getData().containsKey("USER_ID"));
-            Assert.assertTrue(bandData.getData().containsKey("LOGIN"));
+        BandData rootBand = new BandData(BandData.ROOT_BAND_NAME);
+        rootBand.setData(new HashMap<>());
+        rootBand.setFirstLevelBandDefinitionNames(new HashSet<>());
 
-            bandData.getChildrenList().forEach(childData-> {
-                Assert.assertNotNull(childData);
-                Assert.assertNotNull(childData.getData());
+        Multimap<String, BandData> reportBandMap = HashMultimap.create();
+
+        for (ReportBand definition : band.getChildren()) {
+            List<BandData> data = controllerFactory.controllerBy(definition.getBandOrientation())
+                    .extract(contextFactory.context(definition, rootBand, new HashMap<>()));
+
+            Assert.assertNotNull(data);
+
+            data.forEach(b-> {
+                Assert.assertNotNull(b);
+                Assert.assertTrue(StringUtils.isNotEmpty(b.getName()));
+
+                reportBandMap.put(b.getName(), b);
             });
 
-            Assert.assertTrue(bandData.getChildrenList().stream().anyMatch(childData->
-                    childData.getData().containsKey("HOURS")));
-        });
+            rootBand.addChildren(data);
+            rootBand.getFirstLevelBandDefinitionNames().add(definition.getName());
+        }
+
+        checkHeader(reportBandMap.get("crosstab_header"), 2, "name", "id");
+        checkMasterData(reportBandMap.get("crosstab_master_data"), 2, 2,
+                "id", "name", "crosstab_dynamic_header_id", "crosstab_master_data_id", "value");
     }
 
-    private void checkHeader(Collection<BandData> bandDataCollection) {
-        Assert.assertNotNull(bandDataCollection);
-        Assert.assertEquals(1, bandDataCollection.size());
-        BandData bandData = bandDataCollection.iterator().next();
-        Assert.assertTrue(CollectionUtils.isNotEmpty(bandData.getChildrenList()));
-        Assert.assertEquals(12, bandData.getChildrenList().size());
+    @Test
+    public void testJsonExtractionForBand() throws IOException, URISyntaxException {
+        ReportBand band = YmlDataUtil.bandFrom(FileLoader.load("extraction/fixture/cross_json_report_band.yml"));
 
-        bandData.getChildrenList().forEach(childData-> {
-            Assert.assertNotNull(childData);
-            Assert.assertNotNull(childData.getData());
-            Assert.assertTrue(childData.getData().containsKey("MONTH_NAME"));
-            Assert.assertTrue(childData.getData().containsKey("MONTH_ID"));
-        });
+        BandData rootBand = new BandData(BandData.ROOT_BAND_NAME);
+        rootBand.setData(new HashMap<>());
+        rootBand.setFirstLevelBandDefinitionNames(new HashSet<>());
+
+        Multimap<String, BandData> reportBandMap = HashMultimap.create();
+
+        for (ReportBand definition : band.getChildren()) {
+            List<BandData> data = controllerFactory.controllerBy(definition.getBandOrientation())
+                    .extract(contextFactory.context(definition, rootBand, ExtractionUtils.getParams(definition)));
+
+            Assert.assertNotNull(data);
+
+            data.forEach(b-> {
+                Assert.assertNotNull(b);
+                Assert.assertTrue(StringUtils.isNotEmpty(b.getName()));
+
+                reportBandMap.put(b.getName(), b);
+            });
+
+            rootBand.addChildren(data);
+            rootBand.getFirstLevelBandDefinitionNames().add(definition.getName());
+        }
+
+        checkHeader(reportBandMap.get("crosstab_header"), 2, "name", "id");
+        checkMasterData(reportBandMap.get("crosstab_master_data"), 2, 2,
+                "id", "name", "crosstab_dynamic_header_id", "crosstab_master_data_id", "value");
     }
 }

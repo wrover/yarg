@@ -126,5 +126,13 @@ public class CrossTabExtractionController extends DefaultExtractionController {
             result = 31 * result + (vkey != null ? vkey.hashCode() : 0);
             return result;
         }
+
+        @Override
+        public String toString() {
+            return "CrossKey{" +
+                    "hkey=" + hkey +
+                    ", vkey=" + vkey +
+                    '}';
+        }
     }
 }
