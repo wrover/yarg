@@ -15,13 +15,10 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.*;
-import utils.ExtractionUtils;
-import utils.FixtureUtils;
-import utils.TestDatabase;
-import utils.YmlDataUtil;
+import utils.*;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,7 +36,7 @@ public class CrosstabControllerTest {
     @BeforeClass
     public static void construct() throws Exception {
         database.setUpDatabase();
-        FixtureUtils.loadDb(database.getDs(), "test/extraction/fixture/controller_test.sql");
+        FixtureUtils.loadDb(database.getDs(), "extraction/fixture/controller_test.sql");
 
         loaderFactory.setSqlDataLoader(new SqlDataLoader(database.getDs()));
     }
@@ -55,8 +52,8 @@ public class CrosstabControllerTest {
     }
 
     @Test
-    public void testExtractionForCrosstabBand() throws IOException {
-        ReportBand band = YmlDataUtil.bandFrom(new File("test/extraction/fixture/cross_report_band.yml"));
+    public void testExtractionForCrosstabBand() throws IOException, URISyntaxException {
+        ReportBand band = YmlDataUtil.bandFrom(FileLoader.load("extraction/fixture/cross_report_band.yml"));
         BandData rootBand = new BandData(BandData.ROOT_BAND_NAME);
         rootBand.setData(new HashMap<>());
         rootBand.setFirstLevelBandDefinitionNames(new HashSet<>());

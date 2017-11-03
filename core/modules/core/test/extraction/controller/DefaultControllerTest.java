@@ -16,14 +16,14 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import utils.ExtractionUtils;
-import utils.FixtureUtils;
-import utils.TestDatabase;
-import utils.YmlDataUtil;
+import utils.*;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.net.URISyntaxException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 public class DefaultControllerTest {
 
@@ -37,7 +37,7 @@ public class DefaultControllerTest {
     @BeforeClass
     public static void construct() throws Exception {
         database.setUpDatabase();
-        FixtureUtils.loadDb(database.getDs(), "test/extraction/fixture/controller_test.sql");
+        FixtureUtils.loadDb(database.getDs(), "extraction/fixture/controller_test.sql");
 
         loaderFactory.setSqlDataLoader(new SqlDataLoader(database.getDs()));
     }
@@ -48,8 +48,8 @@ public class DefaultControllerTest {
     }
 
     @Test
-    public void testExtractionForCrosstabBand() throws IOException {
-        ReportBand band = YmlDataUtil.bandFrom(new File("test/extraction/fixture/default_report_band.yml"));
+    public void testExtractionForCrosstabBand() throws IOException, URISyntaxException {
+        ReportBand band = YmlDataUtil.bandFrom(FileLoader.load("extraction/fixture/default_report_band.yml"));
         BandData rootBand = new BandData(BandData.ROOT_BAND_NAME);
         rootBand.setData(new HashMap<>());
         rootBand.setFirstLevelBandDefinitionNames(new HashSet<>());
