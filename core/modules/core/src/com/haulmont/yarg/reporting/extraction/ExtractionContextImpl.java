@@ -9,6 +9,9 @@ import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * default data extraction context implementation
+ */
 public class ExtractionContextImpl implements ExtractionContext {
     protected DataExtractor extractor;
     protected ReportBand band;
@@ -51,7 +54,8 @@ public class ExtractionContextImpl implements ExtractionContext {
         return new ExtractionContextImpl(extractor, band, parentBand, params);
     }
 
-    public ExtractionContextImpl withBand(ReportBand band) {
+    @Override
+    public ExtractionContext withBand(ReportBand band, BandData parentBand) {
         return new ExtractionContextImpl(extractor, band, parentBand, params);
     }
 

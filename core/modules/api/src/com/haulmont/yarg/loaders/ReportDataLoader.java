@@ -27,8 +27,14 @@ import java.util.Map;
  * This interface describes a logic which load rows of data using report query, parent band and params
  */
 public interface ReportDataLoader {
+
     /**
      * This method MUST return list of mutable maps. We need mutability to put there some values implicitly.
+     *
+     * @param reportQuery
+     * @param parentBand
+     * @param params
+     * @return loaded data list
      */
     List<Map<String, Object>> loadData(ReportQuery reportQuery, BandData parentBand, Map<String, Object> params);
 }

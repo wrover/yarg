@@ -18,6 +18,9 @@ import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Default data extraction logic implementation
+ */
 public class DefaultExtractionController implements ExtractionController {
 
     protected ReportLoaderFactory loaderFactory;
@@ -109,8 +112,7 @@ public class DefaultExtractionController implements ExtractionController {
                 List<BandData> childBands = controllerRegistry
                         .controllerBy(childDefinition.getBandOrientation())
                         .extract(context
-                                .withBand(childDefinition)
-                                .withParentData(band));
+                                .withBand(childDefinition, band));
                 band.addChildren(childBands);
             }
         }

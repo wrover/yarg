@@ -14,6 +14,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Extraction controller for {@link com.haulmont.yarg.structure.BandOrientation#CROSS} orientation
+ *
+ * Contains custom logic to get more simple way to create crosstab bands
+ */
 public class CrossTabExtractionController extends DefaultExtractionController {
 
     public static final String VERTICAL_BAND = "master_data";

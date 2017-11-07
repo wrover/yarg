@@ -8,6 +8,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * default preprocessor factory implementation
+ */
 public class DefaultPreprocessorFactory implements PreprocessorFactory {
     protected QueryLoaderPreprocessor defaultPreprocessor;
     protected Map<String, QueryLoaderPreprocessor> preprocessorMap = new ConcurrentHashMap<>();

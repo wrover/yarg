@@ -11,6 +11,9 @@ import java.util.function.BiFunction;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * default controller factory implementation
+ */
 public class DefaultExtractionControllerFactory implements ExtractionControllerFactory {
     protected ReportLoaderFactory loaderFactory;
     protected ExtractionController defaultExtractionController;

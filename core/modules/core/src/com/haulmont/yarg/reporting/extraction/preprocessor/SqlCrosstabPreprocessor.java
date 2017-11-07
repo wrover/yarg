@@ -16,6 +16,14 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * SQL (and JPQL also) implementation of params preprocessor
+ *
+ * Preprocessor searches params in sql fragment and preparing them for
+ * data linking between query bands, that contains data for vertical and horizontal band distribution.
+ *
+ * Another function is wrapping query object to inject processed query without breaking reportQuery immutability
+ */
 public class SqlCrosstabPreprocessor implements QueryLoaderPreprocessor {
 
     private static final Pattern REF_PATTERN = Pattern.compile("(\\w+)@(.+?)\\b");

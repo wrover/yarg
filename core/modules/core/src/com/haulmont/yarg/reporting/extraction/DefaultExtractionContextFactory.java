@@ -6,6 +6,9 @@ import com.haulmont.yarg.structure.ReportBand;
 
 import java.util.Map;
 
+/**
+ * default extraction context implantation
+ */
 public class DefaultExtractionContextFactory implements ExtractionContextFactory {
 
     protected DataExtractor dataExtractor;
